@@ -565,10 +565,13 @@ public class SSLService: SSLServiceDelegate {
 					throw SSLError.fail(Int(ECONNABORTED), reason)
 				}
                 var bufSizeCopy = bufSize
-				var rc = SSL_write(sslConnect, buffer, Int32(bufSizeCopy))
+                let maxBuf = 1024 * 16
+                var toWrite = min(maxBuf,bufSizeCopy)
+				var rc = SSL_write(sslConnect, buffer, Int32(toWrite))
                 while(bufSizeCopy > 0) {
                     bufSizeCopy -= Int(rc)
                     buffer = buffer.advanced(by: Int(rc))
+                    toWrite = min(maxBuf,bufSizeCopy)
                     rc = SSL_write(sslConnect, buffer, Int32(bufSizeCopy))
                 }
 				if rc < 0 {
