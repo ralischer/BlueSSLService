@@ -565,10 +565,10 @@ public class SSLService: SSLServiceDelegate {
 					throw SSLError.fail(Int(ECONNABORTED), reason)
 				}
                 var bufSizeCopy = bufSize
-				let rc = SSL_write(sslConnect, buffer, Int32(bufSizeCopy))
+				var rc = SSL_write(sslConnect, buffer, Int32(bufSizeCopy))
                 while(bufSizeCopy > 0) {
                     bufSizeCopy -= Int(rc)
-                    buffer.advanced(by: Int(rc))
+                    buffer = buffer.advanced(by: Int(rc))
                     rc = SSL_write(sslConnect, buffer, Int32(bufSizeCopy))
                 }
 				if rc < 0 {
@@ -995,7 +995,7 @@ public class SSLService: SSLServiceDelegate {
 				
 			}, nil)
             
-            SSL_CTX_set_mode(context, SSL_MODE_ENABLE_PARTIAL_WRITE)
+            SSL_CTX_enable_partial_write(context)
 			
 		#else
 			
