@@ -564,8 +564,13 @@ public class SSLService: SSLServiceDelegate {
 					let reason = "ERROR: SSL_write, code: \(ECONNABORTED), reason: Unable to reference connection)"
 					throw SSLError.fail(Int(ECONNABORTED), reason)
 				}
-			
-				let rc = SSL_write(sslConnect, buffer, Int32(bufSize))
+                var bufSizeCopy = bufSize
+				let rc = SSL_write(sslConnect, buffer, Int32(bufSizeCopy))
+                while(bufSizeCopy > 0) {
+                    bufSizeCopy -= Int(rc)
+                    buffer.advanced(by: Int(rc))
+                    rc = SSL_write(sslConnect, buffer, Int32(bufSizeCopy))
+                }
 				if rc < 0 {
 				
 					let lastError = SSL_get_error(sslConnect, rc)
@@ -989,6 +994,8 @@ public class SSLService: SSLServiceDelegate {
 				return SSL_TLSEXT_ERR_NOACK
 				
 			}, nil)
+            
+            SSL_CTX_set_mode(context, SSL_MODE_ENABLE_PARTIAL_WRITE)
 			
 		#else
 			
